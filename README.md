@@ -1,5 +1,5 @@
 # APSiC
-The R code for the APSiC manuscript will be available here by October 25, 2019.
+The R code for performing statistical tests and plotting the rank profiles developed in APSiC manuscript will be available here by October 25, 2019.
 
 
 # Shiny app
