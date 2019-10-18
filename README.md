@@ -12,6 +12,6 @@ A web portal using the Shiny framework in R has been developed to visualize rank
 
 ### Contact
 ```
-Hesam Montazeri: hesam.montazeri (at) bsse.ethz.ch
-Charlotte K Y Ng: charlotte.ng (at) dbmr.unibe.ch
+hesam.montazeri (at) bsse.ethz.ch
+charlotte.ng (at) dbmr.unibe.ch
 ```
