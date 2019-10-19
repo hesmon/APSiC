@@ -3,7 +3,7 @@ The R code for performing statistical tests and plotting the rank profiles devel
 
 
 # P-value files
-APSiC p-values for 26 cancer as well as pan-cancer data for identifying genetic and non-genetic drivers are available [here.](hits/)
+APSiC p-values for 26 cancers as well as pan-cancer data for identification of genetic and non-genetic drivers are available [here.](hits/)
 
 
 # Shiny app
