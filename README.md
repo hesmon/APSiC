@@ -2,6 +2,9 @@
 The R code for performing statistical tests and plotting the rank profiles developed in APSiC manuscript will be available here by October 25, 2019.
 
 
+# P-value files
+APSiC p-values for 26 cancer as well as pan-cancer data for identifying genetic and non-genetic drivers are available [here.](hits/)
+
 # Shiny app
 A web portal using the Shiny framework in R has been developed to visualize rank profiles of the DRIVE shRNA screen and corresponding gene expression data from TCGA at https://apsic.shinyapps.io/APSiC/. 
 
