@@ -1,5 +1,5 @@
 # APSiC
-The whole data analayzed in this paper are published as a part of project DRIVE (https://data.mendeley.com/datasets/y3ds55n88r/5) and at the CCLE (https://portals.broadinstitute.org/ccle). The breast cancer data is available as an R object in this repository (`R/BreastData.RData`). 
+The whole data sets analayzed in this manuscript are published as a part of project DRIVE (https://data.mendeley.com/datasets/y3ds55n88r/5) and at the CCLE (https://portals.broadinstitute.org/ccle). The breast cancer data is available as an R object in this repository (`R/BreastData.RData`). 
 
 To find non-genetic tumor suppressors using APSiC, use the `identifyDependencies` function with argument `dependencyType = "non-genetic-tsg`:
 ```
