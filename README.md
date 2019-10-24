@@ -18,6 +18,9 @@ To plot the rank profiles, the `waterfallForGene` function can be used:
 gene = "TP53"
 waterfallForGene(breastData, gene=gene, title=paste("Breast cancer: rank profile of", gene), rank=TRUE)
 ```
+<p align="center">
+ <img src="R/tp53.jpg">
+</p>
 
 # Manuscript
 The manuscript is available at:
