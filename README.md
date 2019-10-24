@@ -10,7 +10,8 @@ load("BreastData.RData")
 identifyDependencies(breastData, dependencyType = "non-genetic-tsg")
 ```
 The `dependencyType` argument takes values from `non-genetic-tsg`, `non-genetic-oncogene`, 
-`mutation-tsg`, `mutation-oncogene`, `amplification-oncogene` and can be set to find the cancer dependencies defined in the manuscript.
+`mutation-tsg`, `mutation-oncogene`, `amplification-oncogene` to find the cancer dependencies defined in the manuscript.
+
 
 To plot the rank profiles, the `waterfallForGene` function can be used:
 ```
