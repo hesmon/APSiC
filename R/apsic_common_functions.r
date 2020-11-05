@@ -12,91 +12,49 @@ IH_CDF <- function(x, n) {
   }
 }
 
-getCancerTypes <- function() {
-  base_folder = "../Data/"
-  meta_data <- read.csv(paste0(base_folder, "MutationFiles/File_metadata.csv"), header = TRUE, stringsAsFactors = FALSE)
-  meta_data$Primary_site
-}
-
-
-
-
 # selectCelllines <- function(panCancerData, text, filter=NA) {
 selectCelllines <- function(panCancerData, patho_annot) {
-  CellLine_annot <-  read.csv("../Data/ProjectDRIVE/TableS2.csv",stringsAsFactors = F)
+  if(patho_annot == "Pan_cancer") {
+    return(panCancerData)
+  }
+  # CellLine_annot <-  read.csv("../external/InputData/ProjectDRIVE/TableS2.csv",stringsAsFactors = F)
+  # CellLine_annot = CellLine_annot[CellLine_annot$PATHOLOGIST_ANNOTATION == patho_annot, , drop=FALSE]
+  CellLine_annot = panCancerData$CellLine_annot
   CellLine_annot = CellLine_annot[CellLine_annot$PATHOLOGIST_ANNOTATION == patho_annot, , drop=FALSE]
   
   if(nrow(CellLine_annot) == 0 ) {
     return(NA)
   }
   
-  # if(is.na(filter)) {
-  #   CellLine_annot = CellLine_annot[CellLine_annot$PRIMARY_SITE == text , ]
-  #   
-  # } else {
-  #   CellLine_annot = CellLine_annot[CellLine_annot$PRIMARY_SITE == text & CellLine_annot$PATHOLOGIST_ANNOTATION == filter, ]
-  # }
-  
-  
   
   indexes = which(colnames(panCancerData$viabilities) %in% paste0(CellLine_annot$CELLLINE, "_", CellLine_annot$PRIMARY_SITE))
   
   panCancerData$viabilities = panCancerData$viabilities[, indexes, drop=FALSE]
+  panCancerData$D2_scores = panCancerData$D2_scores[, indexes, drop=FALSE]
   panCancerData$mutations_all = panCancerData$mutations_all[, indexes, drop=FALSE]
   panCancerData$silentMutations = panCancerData$silentMutations[, indexes, drop=FALSE]
   panCancerData$missenseMutations = panCancerData$missenseMutations[, indexes, drop=FALSE]
-  panCancerData$truncatingMutations = panCancerData$truncatingMutations[, indexes, drop=FALSE]
-  
+  panCancerData$missenseMutationsHotspot = panCancerData$missenseMutationsHotspot[, indexes, drop=FALSE]
+  panCancerData$allTruncatingMutations = panCancerData$allTruncatingMutations[, indexes, drop=FALSE]
+  panCancerData$lofMutations = panCancerData$lofMutations[, indexes, drop=FALSE]
+  panCancerData$gofTruncatingMutations = panCancerData$gofTruncatingMutations[, indexes, drop=FALSE]
   panCancerData$copyNumbers = panCancerData$copyNumbers[, indexes, drop=FALSE]
   # panCancerData$exprData = panCancerData$exprData[, indexes]
+  panCancerData$rankedViabilities = panCancerData$rankedViabilities[, indexes, drop=FALSE]
+  panCancerData$CRISPR_data = panCancerData$CRISPR_data[, indexes, drop=FALSE]
+  panCancerData$wildtypeMatrix = panCancerData$wildtypeMatrix[, indexes, drop=FALSE]
+  
+  panCancerData$mutationFreqMatrix$missenseMutNr = panCancerData$mutationFreqMatrix$missenseMutNr[, indexes, drop=FALSE]
+  panCancerData$mutationFreqMatrix$deleteriousMutNr = panCancerData$mutationFreqMatrix$deleteriousMutNr[, indexes, drop=FALSE]
+  panCancerData$mutationFreqMatrix$silentMutNr = panCancerData$mutationFreqMatrix$silentMutNr[, indexes, drop=FALSE]
+  panCancerData$mutationFreqMatrix$nonsenseMutNr = panCancerData$mutationFreqMatrix$nonsenseMutNr[, indexes, drop=FALSE]
+  panCancerData$mutationFreqMatrix$indelSplicMutNr = panCancerData$mutationFreqMatrix$indelSplicMutNr[, indexes, drop=FALSE]
+  
+  panCancerData$rankedCRISPR_data = panCancerData$rankedCRISPR_data[, indexes, drop=FALSE]
+  panCancerData$rankedD2_scores = panCancerData$rankedD2_scores[, indexes, drop=FALSE]
+  
   panCancerData
 }
-
-
-##### plotting tcga data
-##### plotting tcga data
-boxplot_gene <- function(tcga_data, gene) {
-  gene_index = which(rownames(tcga_data$normal_counts)== gene) 
-  
-  tumor_cpm = cpm(tcga_data$tumor_counts)
-  normal_cpm = cpm(tcga_data$normal_counts)
-  
-  N = normal_cpm[gene_index, ] + 1
-  T = tumor_cpm[gene_index, ] + 1
-  
-  dat = data.frame(group = c(rep( "Normal", length(N)), rep( "Tumor", length(T)) ) , CPM = c(N, T) ) 
-  
-  # geom_boxplot proposes several arguments to custom appearance
-  gPlot = ggplot(dat, aes(x=group, y=CPM)) + 
-    geom_boxplot(
-      
-      # custom boxes
-      color="blue",
-      fill="blue",
-      alpha=0.2,
-      
-      # Notch?
-      # notch=TRUE,
-      # notchwidth = 0.8,
-      
-      # custom outliers
-      outlier.colour="red",
-      outlier.fill="red",
-      outlier.size=3
-      
-    ) + scale_y_continuous(trans='log10') + theme(axis.title.x=element_blank())
-  
-  print(gPlot)
-}
-
-
-mapPrimarySiteToTCGAproject <- function(primary_site) {
-  data = read.csv("../Data/TCGA/TCGAProjectsDesc.csv", stringsAsFactors = F)
-  rownames(data) = data$primary_site
-  
-  data[primary_site, ]$tcga_project
-}
-
 
 CDF_sum_weighted_uniform <- function(x, y, direction) {
   m = length(x)
@@ -146,6 +104,7 @@ CDF_sum_weighted_uniform <- function(x, y, direction) {
   }
   pvalue
 }
+
 
 identifyDependencies <- function(cancerData,  dependencyType ) {
   if(dependencyType == "non-genetic-tsg") {
@@ -246,13 +205,13 @@ getWaterfallSettings <- function(type = "mut", cols=NULL) {
     if(is.null(cols)) {
       cols =  c("darkgray","#2c7bb6", "#fdae61", "#d7191c")
     }
-    res =   list(colors = cols, legendText = c("WT", "Others", "Missense", "Truncating"))
+    res =   list(colors = cols, legendText = c("WT", "Others", "Missense", "Deleterious"))
   } else if(type == "cna") {
     if(is.null(cols)) {
       cols = c("darkgray","darkblue", "lightblue",  "orange", "darkred")
     }
     res = list(colors = cols, 
-               legendText = c("no change", "2 copy deletion", "1 copy deletion", "amplification", "high-amplification"))
+               legendText = c("No change", "2 copy deletion", "1 copy deletion", "Amplification", "High-amplification"))
   }
   res
 }
@@ -273,10 +232,25 @@ plotRandomRankBands <- function(n, handle, sig_alpha) {
 
 waterfallForGene <- function(panCancerData, gene, title, rank, legenedPos="bottomleft", 
                              cols=NULL, type="all", sig_alpha = NA, cex.axis=1.1) {
+  indexes = which(!is.na(panCancerData$viabilities[gene, ]))
+  if(length(indexes) > 0) {
+    panCancerData$mutations_all = panCancerData$mutations_all[, indexes]
+    panCancerData$silentMutations = panCancerData$silentMutations[, indexes]  
+    panCancerData$missenseMutations = panCancerData$missenseMutations[, indexes]  
+    panCancerData$truncatingMutations = panCancerData$allTruncatingMutations[, indexes]  
+    panCancerData$viabilities = panCancerData$viabilities[, indexes]  
+    
+  } else {
+    return(NULL)
+  }
+  
+  
+  
   mut_tmp = rep(1, ncol(panCancerData$mutations_all))
   mut_tmp[ which(panCancerData$silentMutations[gene, ] == 1) ] = 2
   mut_tmp[ which(panCancerData$missenseMutations[gene, ] == 1) ] = 3
   mut_tmp[ which(panCancerData$truncatingMutations[gene, ] == 1) ] = 4
+  
   
   if(rank == TRUE){
     allRanks = apply(panCancerData$viabilities, 2, rank) / nrow(panCancerData$viabilities) - 0.5
@@ -293,14 +267,14 @@ waterfallForGene <- function(panCancerData, gene, title, rank, legenedPos="botto
     mut = mut[indexes]
     via = via[indexes]
     if(length(indexes) == 0) {
-      warnings("no observation!")
+      # warnings("no observation!")
       return(NULL)
     }
     
   } else if(type == "only_mut") {
     indexes = which(mut!=1) # !=1 (i.e. 2, 3, 4) means mutated cases
     if(length(indexes) == 0) {
-      warning("no observation!")
+      # warning("no observation!")
       return(NULL)
     }
     mut = mut[indexes]
@@ -308,7 +282,7 @@ waterfallForGene <- function(panCancerData, gene, title, rank, legenedPos="botto
   } else if(type == "only_truncating") {
     indexes = which(mut==4) 
     if(length(indexes) == 0) {
-      warning("no observation!")
+      # warning("no observation!")
       return(NULL)
     } 
     mut = mut[indexes]
@@ -316,7 +290,7 @@ waterfallForGene <- function(panCancerData, gene, title, rank, legenedPos="botto
   } else if(type == "only_missense") {
     indexes = which(mut==3) 
     if(length(indexes) == 0) {
-      warning("no observation!")
+      # warning("no observation!")
       return(NULL)
     } 
     mut = mut[indexes]
@@ -351,6 +325,7 @@ waterfallForGene <- function(panCancerData, gene, title, rank, legenedPos="botto
     
     plotRandomRankBands(n, handle, sig_alpha)
   }
+  TRUE
 }
 
 
@@ -358,11 +333,19 @@ waterfallForGene <- function(panCancerData, gene, title, rank, legenedPos="botto
 
 waterfallForGene_CNA <- function(panCancerData, gene, title, rank, legenedPos="bottomleft", cols=NULL, type="all",
                                  sig_alpha = NA, cex.axis=1.1) {
+  indexes = which(!is.na(panCancerData$viabilities[gene, ]))
+  if(length(indexes) > 0) {
+    panCancerData$copyNumbers = panCancerData$copyNumbers[, indexes]
+    panCancerData$viabilities = panCancerData$viabilities[, indexes]  
+  } else {
+    return(NULL)
+  }
+  
   cna_tmp = rep(1, ncol(panCancerData$copyNumbers))
-  cna_tmp[ panCancerData$copyNumbers[gene,] < 1 ] = 2
-  cna_tmp[ panCancerData$copyNumbers[gene,] == 1 ] = 3
-  cna_tmp[ panCancerData$copyNumbers[gene,] == 3 ] = 4
-  cna_tmp[ panCancerData$copyNumbers[gene,] > 3 ] = 5
+  cna_tmp[ panCancerData$copyNumbers[gene,] == -2 ] = 2
+  cna_tmp[ panCancerData$copyNumbers[gene,] == -1 ] = 3
+  cna_tmp[ panCancerData$copyNumbers[gene,] == 1 ] = 4
+  cna_tmp[ panCancerData$copyNumbers[gene,] == 2 ] = 5
   
   
   if(rank == TRUE){
@@ -375,6 +358,27 @@ waterfallForGene_CNA <- function(panCancerData, gene, title, rank, legenedPos="b
   
   via = via_tmp[order(via_tmp, decreasing=TRUE)]
   cna = cna_tmp[order(via_tmp, decreasing=TRUE)]
+  
+  
+  if(type == "only_wt") {
+    indexes = which(cna==1)  # 1 means wt
+    via = via[indexes]
+    cna = cna[indexes]
+    if(length(indexes) == 0) {
+      # warnings("no observation!")
+      return(NULL)
+    }
+    
+  } else if(type == "only_cna") {
+    indexes = which(cna!=1) # !=1 (i.e. 2, 3, 4, 5) means with CNA
+    if(length(indexes) == 0) {
+      # warning("no observation!")
+      return(NULL)
+    }
+    cna = cna[indexes]
+    via = via[indexes]
+  }
+  
   
   wfSettings = getWaterfallSettings("cna",cols=cols)
   col = wfSettings$colors[cna]
@@ -408,4 +412,5 @@ waterfallForGene_CNA <- function(panCancerData, gene, title, rank, legenedPos="b
     
     plotRandomRankBands(n, handle, sig_alpha)
   }
+  TRUE
 }
