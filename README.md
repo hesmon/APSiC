@@ -1,5 +1,5 @@
 # APSiC
-The whole data sets analayzed in this manuscript are published as a part of project DRIVE (https://data.mendeley.com/datasets/y3ds55n88r/5) and at the CCLE (https://depmap.org/portal/download). The breast cancer data is available as an R object in this repository (`R/BreastData.RData`). 
+The whole data sets analayzed in this manuscript are published as a part of project DRIVE (https://data.mendeley.com/datasets/y3ds55n88r/5) and at the DepMap data portal (https://depmap.org/portal/download). The breast cancer data is available as an R object in this repository (`R/BreastData.RData`). 
 
 To find tumor suppressive effectors, use the `identifyDependencies` function with argument `dependencyType = "tumor-suppressive-effectors`:
 ```
