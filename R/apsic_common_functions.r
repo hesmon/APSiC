@@ -106,95 +106,127 @@ CDF_sum_weighted_uniform <- function(x, y, direction) {
 }
 
 
-identifyDependencies <- function(cancerData,  dependencyType ) {
-  if(dependencyType == "non-genetic-tsg") {
+computeRankViabilities <- function(viabilities) {
+  apply(viabilities, 2, function(x) {
+    if(all(is.na(x))) {
+      r = rep(NA, length(x))
+      names(r) = names(x)
+      return(r)
+    }
+    n = length(x);
+    normalize(rank(x, na.last = "keep"), method = "range", range = c(1/n, 1-1/n))})
+}
+
+getMutatedIndexes <- function(gene, apsic_type, geneticData, viabilities) {
+  if(apsic_type == "missense") {
+    mutatedIndexes = which(geneticData$missenseMutations[gene, ] == 1 & !is.na(viabilities[gene, ]) ) 
+  } else if(apsic_type == "truncating_all") {
+    mutatedIndexes = which(geneticData$allTruncatingMutations[gene, ] == 1 & !is.na(viabilities[gene, ]) ) 
+  } else if(apsic_type == "truncating_lof") {
+    mutatedIndexes = which(geneticData$lofMutations[gene, ] == 1 & !is.na(viabilities[gene, ]) ) 
+  } else if(apsic_type == "truncating_gof") {
+    mutatedIndexes = which(geneticData$gofTruncatingMutations[gene, ] == 1 & !is.na(viabilities[gene, ]) ) 
+  } else if(apsic_type == "amplification") { 
+    mutatedIndexes = which(geneticData$copyNumbers[gene, ] == 2 & !is.na(viabilities[gene, ])) # high amplification
+  } else if(apsic_type == "non-genetic") {
+    mutatedIndexes = NULL
+  } else {
+    stop("unknown apsic_type or non-genetic")
+  }
+  mutatedIndexes
+}
+
+getWildtypeIndexes <- function(gene, geneticData, viabilities) {
+  which(geneticData$wildtypeMatrix[gene, ] == 1 & !is.na(viabilities[gene, ]) ) 
+}
+
+
+identifyDependencies <- function(cancerData,  dependencyType, excludeNotApplicable=TRUE ) {
+  if(dependencyType == "tumor-suppressive-effectors") {
     type = "non-genetic"; direction = "high"
   }
-  if(dependencyType == "non-genetic-oncogene") {
+  if(dependencyType == "tumor-promoting-effectors") {
     type = "non-genetic"; direction = "low"
   }
-  if(dependencyType == "mutation-tsg") {
-    type = "deleterious"; direction = "high"
+  if(dependencyType == "neomorphic-mutational-oncogenes") {
+    type = "truncating_all"; direction = "low"
   }
-  if(dependencyType == "mutation-oncogene") {
+  if(dependencyType == "mutational-oncogenes") {
     type = "missense"; direction = "low"
   }
-  if(dependencyType == "amplification-oncogene") {
+  if(dependencyType == "amplified-oncogenes") {
     type = "amplification"; direction = "low"
   }
-    
-      
-  allRanks = apply(cancerData$viabilities, 2, function(x) {n = length(x);
-  normalize(rank(x), method = "range", range = c(1/n, 1-1/n))})
+  
+  geneticData = cancerData
+  rViabilities = allRanks = computeRankViabilities(cancerData$viabilities)
   genes = rownames(cancerData$viabilities)
-  results = matrix("", 0, 4)
+  results = data.frame(matrix(NA, 0, 4))
   colnames(results) = c("gene", "freq_wt", "freq_mut", "pvalue")
   
   for(gene in genes) {
+    wtIndexes = getWildtypeIndexes(gene, cancerData, rViabilities) 
     
     if(type != "non-genetic") {
+      mutatedIndexes = getMutatedIndexes(gene, type, geneticData, rViabilities)
+      pvalue = NA
       
-      if(type == "missense") {
-        mutatedIndexes = which(cancerData$missenseMutations[gene, ] == 1  ) 
-      } else if(type == "deleterious") {
-        mutatedIndexes = which(cancerData$truncatingMutations[gene, ] == 1  ) 
-      } else if(type == "amplification") { 
-        mutatedIndexes = which(cancerData$copyNumbers[gene, ] == 2  ) # high amplification
-      } 
-      wtIndexes = setdiff(1:ncol(cancerData$viabilities), mutatedIndexes)
-      
-      if(length(mutatedIndexes) == 0 | length(wtIndexes) == 0) 
-      {
-        pvalue = NA
-      } else {
+      if(length(mutatedIndexes) > 0 & length(wtIndexes) > 0) {
         ## compare mutated and wild-types
-        V_mut = allRanks[gene, mutatedIndexes]
-        V_wt = allRanks[gene, wtIndexes]
+        V_mut = rViabilities[gene, mutatedIndexes]
+        V_wt = rViabilities[gene, wtIndexes]
         pvalue=CDF_sum_weighted_uniform(V_mut, V_wt, direction)
       }
       
-      results = rbind(results, c(gene,  length(wtIndexes), length(mutatedIndexes), pvalue))
-    } else if( type == "non-genetic" ) {
-
-      wtIndexes = which(cancerData$truncatingMutations[gene, ] == 0 & cancerData$missenseMutations[gene, ] == 0 &
-                          ( abs(cancerData$copyNumbers[gene, ]) != 2 | is.na(cancerData$copyNumbers[gene, ]) ) ) # copy neutral
+      # results = rbind(results, c(gene,  length(wtIndexes), length(mutatedIndexes), pvalue, NA))
+      results[nrow(results)+1, ] = c(gene,  length(wtIndexes), length(mutatedIndexes), pvalue)
       
-      p_wt = IH_CDF(sum(allRanks[gene, wtIndexes]), length(wtIndexes) )
-
+    } else if( type == "non-genetic" ) {
+      p_wt = IH_CDF(sum(rViabilities[gene, wtIndexes]), length(wtIndexes) )
+      
       if(direction == "high") {
         p_wt  = 1 - p_wt
       }
       
-      freq_mut = ncol(cancerData$viabilities) - length(wtIndexes)
-      
+      freq_mut = sum(!is.na(rViabilities[gene, ])) - length(wtIndexes)
       p_wt = ifelse(length(wtIndexes) == 0, NA, p_wt)
       
-      results = rbind(results, c(gene,  length(wtIndexes), freq_mut,  p_wt))
+      results[nrow(results)+1, ] = c(gene,  length(wtIndexes), freq_mut,  p_wt)
     }
   }
+  row.names(results) = results$gene
+  results$freq_wt = as.numeric(results$freq_wt)
+  results$freq_mut = as.numeric(results$freq_mut)
+  results$pvalue = as.numeric(results$pvalue)
   
+  results_df = results[ , !(colnames(results) %in% "gene")]
   
-  results_df = data.frame(results, stringsAsFactors = F)
-  row.names(results_df) = results_df$gene
-  results_df = results_df[ , !(names(results_df) %in% "gene")]
-  results_df$freq_wt = as.numeric(results_df$freq_wt)
-  results_df$freq_mut = as.numeric(results_df$freq_mut)
-  results_df$pvalue = as.numeric(results_df$pvalue)
-  
-  results_df = results_df[order(as.numeric(results_df$pvalue)), ]
-  
-  nrOfCelllines = ncol(cancerData$viabilities)
-  nrOfCelllinesThr = max(2, ceiling(nrOfCelllines/100))
+  nrOfCelllines = sum(apply(rViabilities, 2, function(x){!all(is.na(x)) }))
+  # nrOfCelllinesThr = max(2, ceiling(nrOfCelllines/100))
+  nrOfCelllinesThr = 2
   if(type != "non-genetic") {
-    results_df = results_df[which(results_df$freq_mut >= nrOfCelllinesThr), ]
+    indexes = which(results_df$freq_mut >= nrOfCelllinesThr & results_df$freq_wt >= nrOfCelllinesThr)  
+    
+    results_df[setdiff(1:nrow(results_df), indexes), 3] = NA
+    
+    if(excludeNotApplicable)
+      results_df = results_df[indexes, ]
   } else {
-    results_df = results_df[which(results_df$freq_wt >= nrOfCelllinesThr), ]
+    indexes = which(results_df$freq_wt >= nrOfCelllinesThr)
+    results_df[setdiff(1:nrow(results_df), indexes), 3] = NA
+    
+    if(excludeNotApplicable)
+      results_df = results_df[indexes, ]
   }
   
-  pval_significance_thr = min(0.05, 1/nrow(results_df))
-  results_df$is_significant = ifelse(results_df$pvalue < pval_significance_thr, "yes", "no")
+  nrTests = sum(!is.na(results_df$pvalue))
+  pval_significance_thr = min(0.05, 1/nrTests)
   
-  colnames(results_df) = c("#wt", "#mut", "pvalue",	"is_significant")
+  results_df$is_significant = ifelse(results_df$pvalue < pval_significance_thr, "yes", "no")
+  colnames(results_df)[1:2] = c("#wt", "#mut")
+  results_df = results_df[order(results_df$pvalue), ]
+  # results_df$qvalue = p.adjust(results_df$pvalue, "fdr")
+  
   results_df
 }
 
