@@ -10,7 +10,7 @@ load("BreastData.RData")
 identifyDependencies(breastData, dependencyType = "tumor-suppressive-effectors")
 ```
 The `dependencyType` argument takes values from `tumor-suppressive-effectors`, `tumor-promoting-effectors`, 
-`amplified-oncogenes`, `mmutational-oncogenes`, `neomorphic-mutational-oncogenes` to find the cancer dependencies defined in the manuscript.
+`amplified-oncogenes`, `mutational-oncogenes`, `neomorphic-mutational-oncogenes` to find the cancer dependencies defined in the manuscript.
 
 
 To plot the rank profiles, the `waterfallForGene` function can be used:
