@@ -31,7 +31,7 @@ APSiC p-values for 26 cancers as well as pan-cancer data for identification of g
 
 
 # Shiny app
-A web portal using the Shiny framework in R has been developed to visualize rank profiles of the DRIVE shRNA screen and corresponding gene expression data from TCGA at https://apsic.shinyapps.io/APSiC/. 
+A web portal using the Shiny framework in R has been developed to visualize rank profiles of the DRIVE shRNA screen and corresponding gene expression data from TCGA at https://apsic.scicore.unibas.ch/. 
 
 ### Contributions
 - [Hesam Montazeri](http://lcbb.ut.ac.ir/)
