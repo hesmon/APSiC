@@ -148,13 +148,13 @@ identifyDependencies <- function(cancerData,  dependencyType, excludeNotApplicab
   if(dependencyType == "tumor-promoting-effectors") {
     type = "non-genetic"; direction = "low"
   }
-  if(dependencyType == "neomorphic-mutational-oncogenes") {
+  if(dependencyType == "non-missense-mutational-cancer-genes") {
     type = "truncating_all"; direction = "low"
   }
-  if(dependencyType == "mutational-oncogenes") {
+  if(dependencyType == "missense-mutational-cancer-genes") {
     type = "missense"; direction = "low"
   }
-  if(dependencyType == "amplified-oncogenes") {
+  if(dependencyType == "amplified-cancer-genes") {
     type = "amplification"; direction = "low"
   }
   
