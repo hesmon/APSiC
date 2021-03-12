@@ -237,7 +237,7 @@ getWaterfallSettings <- function(type = "mut", cols=NULL) {
     if(is.null(cols)) {
       cols =  c("darkgray","#2c7bb6", "#fdae61", "#d7191c")
     }
-    res =   list(colors = cols, legendText = c("WT", "Others", "Missense", "Deleterious"))
+    res =   list(colors = cols, legendText = c("WT", "Others", "Missense", "Non-missense"))
   } else if(type == "cna") {
     if(is.null(cols)) {
       cols = c("darkgray","darkblue", "lightblue",  "orange", "darkred")
