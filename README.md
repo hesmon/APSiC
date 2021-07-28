@@ -24,7 +24,7 @@ waterfallForGene(breastData, gene=gene, title=paste("Breast cancer: rank profile
 
 # Manuscript
 The manuscript is available at:
-[https://www.biorxiv.org/content/10.1101/807248v2](https://www.biorxiv.org/content/10.1101/807248v2)
+[https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkab627/6329117](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkab627/6329117)
 
 # P-value files
 APSiC p-values for 26 cancers as well as pan-cancer data for identification of genetic drivers and effectors are available [here.](hits/)
